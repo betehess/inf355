@@ -52,6 +52,27 @@ object Java8Option {
   }
 }
 
+
+trait AnyOption extends OptionSig {
+  type Option[+A] = Any
+  type Some[+A] = Any
+  type None = Null
+}
+
+object AnyOption {
+  implicit object Ops extends Ops[AnyOption] {
+    def some[A](x: A): AnyOption#Some[A] = x
+    def none: AnyOption#None = null
+    def fold[A, B](opt: AnyOption#Option[A])(ifNone: => B, ifSome: A => B): B = {
+      if (opt == null)
+        ifNone
+      else
+        ifSome(opt.asInstanceOf[A])
+    }
+  }
+}
+
+
 class Show[Sig <: OptionSig](implicit ops: Ops[Sig]) {
   def show[A](opt: Sig#Option[A]): String =
     ops.fold(opt)("None", i => s"Some($i)")
@@ -70,3 +91,5 @@ class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig]) extends App {
 object ScalaOptionApp extends MyApp[ScalaOption]
 
 object Java8OptionApp extends MyApp[Java8Option]
+
+object AnyOptionApp extends MyApp[AnyOption]
