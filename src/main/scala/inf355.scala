@@ -1,23 +1,30 @@
 package net.rfc1149.inf355
 
-sealed trait Expr
+sealed trait Option[+A]
 
-case class Num(i: Int) extends Expr
+case class Some[+A](x: A) extends Option[A]
 
-case class Mul(l: Expr, r: Expr) extends Expr
+case object None extends Option[Nothing]
 
-case class Sum(l: Expr, r: Expr) extends Expr
+trait OptionModule {
 
-object Main extends App {
+  // types
 
-  def eval(e: Expr): Int = e match {
-    case Num(i)    => i
-    case Sum(l, r) => eval(l) + eval(r)
-    case Mul(l, r) => eval(l) * eval(r)
-  }
+  type Option
 
-  val expr: Expr = Sum(Mul(Num(1), Num(2)), Num(3))
+  type Some <: Option
 
-  println(eval(expr))
+  type None <: Option
+
+  // injectors
+  
+  def some(x: Int): Some
+  
+  def none: None
+
+  // catamorphism
+
+  def fold[A](opt: Option)(ifNone: A, ifSome: Int => A): A
 
 }
+
