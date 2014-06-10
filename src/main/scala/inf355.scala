@@ -1,16 +1,18 @@
 package net.rfc1149.inf355
 
-class Num(val i: Int)
+trait Expr
 
-class Mul(val l: Any, val r: Any)
+class Num(val i: Int) extends Expr
 
-class Sum(val l: Any, val r: Any)
+class Mul(val l: Expr, val r: Expr) extends Expr
+
+class Sum(val l: Expr, val r: Expr) extends Expr
 
 object Main extends App {
 
-  val expr = new Sum(new Mul(new Num(1), new Num(2)), new Num(3))
+  val expr: Expr = new Sum(new Mul(new Num(1), new Num(2)), new Num(3))
 
-  def eval(e: Any): Int = e match {
+  def eval(e: Expr): Int = e match {
     case num: Num => num.i
     case mul: Mul => eval(mul.l) * eval(mul.r)
     case sum: Sum => eval(sum.l) + eval(sum.r)
