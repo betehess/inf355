@@ -20,19 +20,21 @@ trait ScalaOption extends OptionSig {
   type None = scala.None.type
 }
 
-object Ops extends Ops[ScalaOption] {
-  def some[A](x: A): ScalaOption#Some[A] = scala.Some(x)
-  def none: ScalaOption#None = scala.None
-  def fold[A, B](opt: ScalaOption#Option[A])(ifNone: => B, ifSome: A => B): B = opt match {
-    case None => ifNone
-    case Some(x) => ifSome(x)
+object ScalaOption {
+  implicit object Ops extends Ops[ScalaOption] {
+    def some[A](x: A): ScalaOption#Some[A] = scala.Some(x)
+    def none: ScalaOption#None = scala.None
+    def fold[A, B](opt: ScalaOption#Option[A])(ifNone: => B, ifSome: A => B): B = opt match {
+      case None => ifNone
+      case Some(x) => ifSome(x)
+    }
   }
 }
 
-class MyApp[Sig <: OptionSig](val ops: Ops[Sig]) extends App {
+class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig]) extends App {
   val opt = ops.some(42)
   val s: String = ops.fold(opt)("None", i => s"Some($i)")
   println(s)
 }
 
-object ScalaOptionApp extends MyApp[ScalaOption](Ops)
+object ScalaOptionApp extends MyApp[ScalaOption]
