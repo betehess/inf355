@@ -29,12 +29,17 @@ object ScalaOption {
       case Some(x) => ifSome(x)
     }
   }
+  implicit val Show = new Show
 }
 
-class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig]) extends App {
+class Show[Sig <: OptionSig](implicit ops: Ops[Sig]) {
+  def show[A](opt: Sig#Option[A]): String =
+    ops.fold(opt)("None", i => s"Some($i)")
+}
+
+class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig], show: Show[Sig]) extends App {
   val opt = ops.some(42)
-  val s: String = ops.fold(opt)("None", i => s"Some($i)")
-  println(s)
+  println(show.show(opt))
 }
 
 object ScalaOptionApp extends MyApp[ScalaOption]
