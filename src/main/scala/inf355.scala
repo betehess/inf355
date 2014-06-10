@@ -1,24 +1,26 @@
 package net.rfc1149.inf355
 
+import scala.language.higherKinds
+
 trait OptionModule {
-  type Option
-  type Some <: Option
-  type None <: Option
-  def some(x: Int): Some
+  type Option[+_]
+  type Some[+A] <: Option[A]
+  type None <: Option[Nothing]
+  def some[A](x: A): Some[A]
   def none: None
-  def fold[A](opt: Option)(ifNone: => A, ifSome: Int => A): A
+  def fold[A, B](opt: Option[A])(ifNone: => B, ifSome: A => B): B
 }
 
 
 trait ScalaOption extends OptionModule {
-  type Option = scala.Option[Int]
-  type Some = scala.Some[Int]
+  type Option[+A] = scala.Option[A]
+  type Some[+A] = scala.Some[A]
   type None = scala.None.type
-  def some(x: Int): Some = scala.Some(x)
+  def some[A](x: A): Some[A] = scala.Some(x)
   def none: None = scala.None
-  def fold[A](opt: Option)(ifNone: => A, ifSome: Int => A): A = opt match {
+  def fold[A, B](opt: Option[A])(ifNone: => B, ifSome: A => B): B = opt match {
     case None => ifNone
-    case Some(i) => ifSome(i)
+    case Some(x) => ifSome(x)
   }
 }
 
