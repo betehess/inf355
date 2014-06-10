@@ -29,12 +29,15 @@ object ScalaOption {
       case Some(x) => ifSome(x)
     }
   }
-  implicit val Show = new Show
 }
 
 class Show[Sig <: OptionSig](implicit ops: Ops[Sig]) {
   def show[A](opt: Sig#Option[A]): String =
     ops.fold(opt)("None", i => s"Some($i)")
+}
+
+object Show {
+  implicit def showInstance[Sig <: OptionSig](implicit ops: Ops[Sig]): Show[Sig] = new Show
 }
 
 class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig], show: Show[Sig]) extends App {
