@@ -31,6 +31,27 @@ object ScalaOption {
   }
 }
 
+import java.util.Optional
+import java.util.function.{ Function => F, Supplier }
+
+trait Java8Option extends OptionSig {
+  type Option[+A] = Optional[_ <: A]
+  type Some[+A] = Optional[_ <: A]
+  type None = Optional[Nothing]
+}
+
+object Java8Option {
+  implicit object Ops extends Ops[Java8Option] {
+    def some[A](x: A): Java8Option#Some[A] = Optional.of(x)
+    def none: Java8Option#None = Optional.empty()
+    def fold[A, B](opt: Java8Option#Option[A])(ifNone: => B, ifSome: A => B): B = {
+      def f = new F[A, B] { def apply(a: A): B = ifSome(a) }
+      def supplier = new Supplier[B] { def get(): B = ifNone }
+      opt.map[B](f).orElseGet(supplier)
+    }
+  }
+}
+
 class Show[Sig <: OptionSig](implicit ops: Ops[Sig]) {
   def show[A](opt: Sig#Option[A]): String =
     ops.fold(opt)("None", i => s"Some($i)")
@@ -40,9 +61,12 @@ object Show {
   implicit def showInstance[Sig <: OptionSig](implicit ops: Ops[Sig]): Show[Sig] = new Show
 }
 
-class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig], show: Show[Sig]) extends App {
+class MyApp[Sig <: OptionSig](implicit ops: Ops[Sig]) extends App {
+  val show: Show[Sig] = implicitly[Show[Sig]]
   val opt = ops.some(42)
   println(show.show(opt))
 }
 
 object ScalaOptionApp extends MyApp[ScalaOption]
+
+object Java8OptionApp extends MyApp[Java8Option]
