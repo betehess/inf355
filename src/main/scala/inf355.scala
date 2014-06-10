@@ -1,7 +1,19 @@
 package net.rfc1149.inf355
 
+// CATAMORPHISME
+
 trait Expr {
-  def accept[A](visitor: Visitor[A]): A
+  protected def accept[A](visitor: Visitor[A]): A
+  def fold[A](
+    ifNum: Num => A,
+    ifSum: Sum => A,
+    ifMul: Mul => A): A = {
+    this.accept(new Visitor[A] {
+      def visit(num: Num): A = ifNum(num)
+      def visit(mul: Mul): A = ifMul(mul)
+      def visit(sum: Sum): A = ifSum(sum)
+    })
+  }
 }
 
 trait Visitor[A] {
@@ -11,26 +23,24 @@ trait Visitor[A] {
 }
 
 class Num(val i: Int) extends Expr {
-  def accept[A](visitor: Visitor[A]) = visitor.visit(this)
+  protected def accept[A](visitor: Visitor[A]) = visitor.visit(this)
 }
 
 class Mul(val l: Expr, val r: Expr) extends Expr {
-  def accept[A](visitor: Visitor[A]) = visitor.visit(this)
+  protected def accept[A](visitor: Visitor[A]) = visitor.visit(this)
 }
 
 class Sum(val l: Expr, val r: Expr) extends Expr {
-  def accept[A](visitor: Visitor[A]) = visitor.visit(this)
+  protected def accept[A](visitor: Visitor[A]) = visitor.visit(this)
 }
 
 object Main extends App {
 
-  class Evaluator extends Visitor[Int] {
-    def visit(num: Num): Int = num.i
-    def visit(mul: Mul): Int = mul.l.accept(this) * mul.r.accept(this)
-    def visit(sum: Sum): Int = sum.l.accept(this) + sum.r.accept(this)
-  }
-
-  def eval(e: Expr): Int = e.accept(new Evaluator)
+  def eval(e: Expr): Int = e.fold(
+    num => num.i,
+    sum => eval(sum.l) + eval(sum.r),
+    mul => eval(mul.l) * eval(mul.r)
+  )
 
   val expr: Expr = new Sum(new Mul(new Num(1), new Num(2)), new Num(3))
 
